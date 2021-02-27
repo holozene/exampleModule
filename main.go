@@ -39,11 +39,11 @@ func doAnalysis(msg message) {
 	pairs := make([]pair, 1)
 	pairs[0] = pair{Key: "example", Value: string(fileData)}
 	//pairs[1] = pair{Key: "example2", Value: "flurgldy-pop"}
-	print, err := json.Marshal(message{Input: msg.Input, Output: output{Pairs: pairs}})
+	marshal, err := json.Marshal(message{Input: msg.Input, Output: output{Pairs: pairs}})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(print))
+	fmt.Println(string(marshal))
 	done <- true
 }
 
@@ -52,7 +52,7 @@ func readIntoChannel(rc io.ReadCloser, done <-chan bool) chan string {
 	go func() {
 		reader := bufio.NewScanner(rc)
 		for {
-			if !reader.Scan(){
+			if !reader.Scan() {
 				//fmt.Println("done")
 				return
 			}
@@ -70,34 +70,36 @@ func readIntoChannel(rc io.ReadCloser, done <-chan bool) chan string {
 
 func parseMessage(in string) message {
 	var target message
-	json.Unmarshal([]byte(in), &target)
+	_ = json.Unmarshal([]byte(in), &target)
 	return target
 }
 
 type message struct {
-	Input 	input
-	Output 	output
+	Input  input
+	Output output
 }
 
 type input struct {
-	Type	messageType
-	Data	string
+	Type messageType
+	Data string
 }
 
 type output struct {
-	Pairs	[]pair
+	Pairs []pair
 }
 
 type pair struct {
-	Key	string
-	Value	string
+	Key   string
+	Value string
 }
 
 type messageType int
 
 const (
-	analyze messageType = iota
+	noop messageType = iota
+	analyze
 	suspend
 	resume
 	stop
+	queryUsage
 )
